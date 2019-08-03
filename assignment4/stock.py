@@ -45,8 +45,8 @@ if __name__ == "__main__":
     sc = SparkContext(appName="StockTick")
 
     # rawTickData is a Resilient Distributed Dataset (RDD)
-    filename = "/opt/work/host/code/spark-exercises/WDC_tickbidask.txt"
-    filename = "gs://spark_bigdl/WDC_tickbidask.txt"
+    # filename = "/opt/work/host/code/spark-exercises/WDC_tickbidask.txt"
+    filename = "hdfs:///datasets/WDC_tickbidask.txt"
     rawTickData = sc.textFile(filename)
 
     tickData = rawTickData.map(lambda x: StockTick(x))
@@ -88,13 +88,13 @@ if __name__ == "__main__":
     avgDailySpreads = goodTicks.map(generateSpreadsDailyKeys).reduceByKey(spreadsSumReduce); # (1)
     avgDailySpreads = avgDailySpreads.map(lambda a: (a[0], a[1][1] / a[1][2])) # (2)
     avgDailySpreads = avgDailySpreads.sortByKey().map(lambda a: '{0}, {1}'.format(*a)) # (3)
-    avgDailySpreads = avgDailySpreads.saveAsTextFile("WDC_daily") # (4)
+    avgDailySpreads = avgDailySpreads.saveAsTextFile("hdfs:///datasets/WDC_daily") # (4)
 
     # For the hourly spread you only need to change the key. How?
 
     avgHourlySpreads = goodTicks.map(generateSpreadsHourlyKeys).reduceByKey(spreadsSumReduce); # (1)
     avgHourlySpreads = avgHourlySpreads.map(lambda a: (a[0], a[1][1] / a[1][2])) # (2)
     avgHourlySpreads = avgHourlySpreads.sortByKey().map(lambda a: '{0}, {1}'.format(*a)) # (3)
-    avgHourlySpreads = avgHourlySpreads.saveAsTextFile("WDC_hourly") # (4)
+    avgHourlySpreads = avgHourlySpreads.saveAsTextFile("hdfs:///datasets/WDC_hourly") # (4)
 
     sc.stop()
