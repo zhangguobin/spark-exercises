@@ -19,13 +19,13 @@ def minValuesReduce(a, b):
             units = min(a.units, b.units))
 
 def generateSpreadsDailyKeys(tick): ### TODO: Write Me (see below)
-    dailyKey = '{2:0>4}-{0:0>2}-{1:0>2}'.format(tick.date.split('/'))
+    dailyKey = '{2:0>4}-{0:0>2}-{1:0>2}'.format(*(tick.date.split('/')))
     return (dailyKey,
             (tick.time, (tick.ask - tick.bid) / 2 * (tick.ask + tick.bid), 1))
 
 def generateSpreadsHourlyKeys(tick): ### TODO: Write Me (see below)
     hourlyKey = '{2:0>4}-{0:0>2}-{1:0>2}-{3:0>2}'.format(
-            tick.date.split('/') + tick.time.split(':'))
+            *(tick.date.split('/') + tick.time.split(':')))
     return (hourlyKey,
             (tick.time, (tick.ask - tick.bid) / 2 * (tick.ask + tick.bid), 1))
 
@@ -45,7 +45,8 @@ if __name__ == "__main__":
     sc = SparkContext(appName="StockTick")
 
     # rawTickData is a Resilient Distributed Dataset (RDD)
-    filename = "/opt/work/host/code/spark-exercises/assignment4/WDC_tickbidask.txt"
+    filename = "/opt/work/host/code/spark-exercises/WDC_tickbidask.txt"
+    filename = "gs://spark_bigdl/WDC_tickbidask.txt"
     rawTickData = sc.textFile(filename)
 
     tickData = rawTickData.map(lambda x: StockTick(x))
@@ -86,14 +87,14 @@ if __name__ == "__main__":
 
     avgDailySpreads = goodTicks.map(generateSpreadsDailyKeys).reduceByKey(spreadsSumReduce); # (1)
     avgDailySpreads = avgDailySpreads.map(lambda a: (a[0], a[1][1] / a[1][2])) # (2)
-    avgDailySpreads = avgDailySpreads.sortByKey().map(lambda a: '{0}, {1}'.format(a[0], a[1])) # (3)
+    avgDailySpreads = avgDailySpreads.sortByKey().map(lambda a: '{0}, {1}'.format(*a)) # (3)
     avgDailySpreads = avgDailySpreads.saveAsTextFile("WDC_daily") # (4)
 
     # For the hourly spread you only need to change the key. How?
 
     avgHourlySpreads = goodTicks.map(generateSpreadsHourlyKeys).reduceByKey(spreadsSumReduce); # (1)
     avgHourlySpreads = avgHourlySpreads.map(lambda a: (a[0], a[1][1] / a[1][2])) # (2)
-    avgHourlySpreads = avgHourlySpreads.sortByKey().map(lambda a: '{0}, {1}'.format(a[0], a[1])) # (3)
+    avgHourlySpreads = avgHourlySpreads.sortByKey().map(lambda a: '{0}, {1}'.format(*a)) # (3)
     avgHourlySpreads = avgHourlySpreads.saveAsTextFile("WDC_hourly") # (4)
 
     sc.stop()
