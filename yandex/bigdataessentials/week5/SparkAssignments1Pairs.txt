@@ -1,0 +1,16 @@
+Find all the pairs of two consequent words where the first word is “narodnaya”. For each pair, count the number of occurrences in the Wikipedia dump. Print all the pairs with their count in a lexicographical order. Output format is “word_pair <tab> count”, for example:
+
+red_apple	100500
+
+crazy_zoo	42
+
+Note that two words in a pair are concatenated with the underscore character, and the result is in the lowercase.
+
+One motivation for counting these continuations is to get a better understanding of the language. Some words, like “the”, have a lot of continuations, while others, like “San”, have just a few (“San Francisco”, for example). One can build a language model with these statistics. If you are interested to learn more, search for “n-gram language model” in the Internet.
+
+Dataset location: /data/wiki/en_articles_part
+
+The result on the sample dataset:
+
+narodnaya_gazeta    1
+narodnaya_volya 9
