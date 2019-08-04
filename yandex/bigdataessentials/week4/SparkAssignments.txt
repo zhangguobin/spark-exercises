@@ -1,0 +1,57 @@
+In this assignment you will use Spark to compute various statistics for word pairs. At the same time, you will learn some simple techniques of natural language processing.
+
+Dataset location: /data/wiki/en_articles_part
+
+Format: article_id <tab> article_text
+
+While parsing the articles, do not forget about Unicode (even though this is an English Wikipedia dump, there are many characters from other languages), remove punctuation marks and transform words to lowercase to get the correct quantities. Here is a starting snippet:
+
+#! /usr/bin/env python
+
+from pyspark import SparkConf, SparkContext
+sc = SparkContext(conf=SparkConf().setAppName("MyApp").setMaster("local[2]"))
+
+import re
+
+def parse_article(line):
+    try:
+        article_id, text = unicode(line.rstrip()).split('\t', 1)
+    except ValueError as e:
+        return []
+    text = re.sub("^\W+|\W+$", "", text, flags=re.UNICODE)
+    words = re.split("\W*\s+\W*", text, flags=re.UNICODE)
+    return words
+
+wiki = sc.textFile("/data/wiki/en_articles_part/articles-part", 16).map(parse_article)
+result = wiki.take(1)[0]
+
+for word in result[:50]:
+    print word
+
+
+You can use this code as a starter template. Now proceed to LTI assignments.
+
+If you want to deploy the environment on your own machine, please use bigdatateam/spark-course1 Docker container.
+
+You should eliminate extra symbols in output (such as quotes, brackets etc.). When you finally get the resulting dataframe it is easier to print wiki.take(1) instead of traverse RDD using for cycle. But in this case a lot of junk symbols will be printed like:
+
+[[u'Anarchism',
+  u'is',
+  u'often',
+  u'defined',
+  u'as',
+...
+]]
+
+The correct output is
+
+Anarchism
+is
+often
+defined
+as
+
+You can receive it using the similar code:
+
+for item in result:
+    print '%s %s' % item
