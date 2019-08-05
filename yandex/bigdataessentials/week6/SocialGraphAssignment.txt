@@ -1,0 +1,52 @@
+You can start with the code from the video to help understand the goal. Please note that this sample code is not efficient and therefore wont work for submission to the grader. However, it does provide a basis regarding the intent of the task.
+
+def parse_edge(s):
+  user, follower = s.split("\t")
+  return (int(user), int(follower))
+
+def step(item):
+  prev_v, prev_d, next_v = item[0], item[1][0], item[1][1]
+  return (next_v, prev_d + 1)
+
+def complete(item):
+  v, old_d, new_d = item[0], item[1][0], item[1][1]
+  return (v, old_d if old_d is not None else new_d)
+
+n = 400  # number of partitions
+edges = sc.textFile("/data/twitter/twitter_sample_small.txt").map(parse_edge).cache()
+forward_edges = edges.map(lambda e: (e[1], e[0])).partitionBy(n).persist()
+
+x = 12
+d = 0
+distances = sc.parallelize([(x, d)]).partitionBy(n)
+while True:
+  candidates = distances.join(forward_edges, n).map(step)
+  new_distances = distances.fullOuterJoin(candidates, n).map(complete, True).persist()
+  count = new_distances.filter(lambda i: i[1] == d + 1).count()
+  if count > 0:
+    d += 1
+    distances = new_distances
+  else:
+    break
+
+Reconstructing the path
+In this assignment you will use Spark to compute the shortest path between two vertices. In the video, you have learned how to compute the distances between a source vertex and all other vertices in a graph. Now, your task is to reconstruct the shortest path, that is a sequence of vertices connected by the edges.
+
+Dataset location: /data/twitter/twitter_sample_small.txt
+
+Format: user_id \t follower_id
+
+You can start with the code described in "Starter..." (see the next self-reading).
+
+Your task is to find the shortest path between vertices 12 and 34. In case of multiple shortest paths (that is, disjoint paths with the same length), any will suffice. Output format is the sequence of vertices, delimited by a comma, without spaces. For example, the path “12 -> 42 -> 34” should be printed as:
+
+12,42,34
+
+Hint: before submitting, check your stopping criteria. In BFS, the search was exhaustive, and in this task your program may terminate earlier, thus saving some precious time.
+
+The result on the sample dataset:
+
+12,422,53,52,107,20,23,274,34
+
+If you want to deploy the environment on your own machine, please use bigdatateam/spark-course1 Docker container.
+
